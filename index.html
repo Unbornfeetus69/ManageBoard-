@@ -7,7 +7,39 @@
   <meta name="keywords" content="soundboard, audio, play, ManageBoard">
   <meta name="author" content="ManageBoard">
   <title>ManageBoard Soundboard</title>
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+      background-color: #f9f9f9;
+    }
+
+    main {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .button {
+      background: #007bff;
+      color: white;
+      padding: 15px 25px;
+      border: none;
+      margin: 10px;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .button:hover {
+      background: #0056b3;
+    }
+
+    .controls {
+      margin-top: 30px;
+    }
+  </style>
 </head>
 <body>
   <main>
@@ -18,12 +50,41 @@
       <button class="button" data-sound="sound2.mp3">Sound 2</button>
     </div>
     <div class="controls">
-      <button class="button control" id="add-sound">Add Sound</button>
-      <button class="button control" id="add-soundtrack">Add Soundtrack</button>
+      <button class="button" id="add-sound">Add Sound</button>
+      <button class="button" id="add-soundtrack">Add Soundtrack</button>
     </div>
     <audio id="player"></audio>
     <audio id="soundtrack" loop></audio>
   </main>
-  <script src="script.js"></script>
+  <script>
+    document.querySelectorAll('.button[data-sound]').forEach(button => {
+      button.addEventListener('click', () => {
+        const sound = button.getAttribute('data-sound');
+        const player = document.getElementById('player');
+        player.src = sound;
+        player.play();
+      });
+    });
+
+    document.getElementById('add-sound').addEventListener('click', () => {
+      const buttonsDiv = document.querySelector('.buttons');
+      const newButton = document.createElement('button');
+      newButton.className = 'button';
+      newButton.textContent = 'New Sound';
+      newButton.setAttribute('data-sound', 'sound3.mp3');
+      newButton.addEventListener('click', () => {
+        const player = document.getElementById('player');
+        player.src = 'sound3.mp3';
+        player.play();
+      });
+      buttonsDiv.appendChild(newButton);
+    });
+
+    document.getElementById('add-soundtrack').addEventListener('click', () => {
+      const soundtrack = document.getElementById('soundtrack');
+      soundtrack.src = 'soundtrack.mp3';
+      soundtrack.play();
+    });
+  </script>
 </body>
 </html>
