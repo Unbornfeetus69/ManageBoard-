@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ManageBo Soundpad</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: white;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #topBar {
+            background-color: #000000;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        #topBar .title {
+            flex: 1;
+            text-align: left;
+            padding-left: 20px;
+        }
+        #topBar .settings {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .container {
+            display: flex;
+            height: calc(100vh - 50px);
+            overflow: hidden;
+        }
+        #cueListContainer {
+            width: 25%;
+            background: #2c2c2c;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        #cueList {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid gray;
+            padding: 5px;
+            background: white;
+        }
+        .cue {
+            padding: 5px;
+            margin: 5px 0;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cue-label {
+            flex: 1;
+        }
+        .cue-time {
+            font-size: 0.8em;
+            color: #ccc;
+            margin-left: 10px;
+        }
+        .cue.scene-change { color: blue; }
+        .cue.blackout { color: red; }
+        .cue.custom-cue { color: green; }
+        .audio-controls {
+            flex-grow: 1;
+            text-align: center;
+            padding: 10px;
+        }
+        .sfx-container {
+            width: 25%;
+            background: #2c2c2c;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .button-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+        .big-button {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px rgba(255, 75, 43, 0.4);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        .big-button:hover {
+            background: linear-gradient(45deg, #ff4b2b, #ff416c);
+            transform: scale(1.1);
+            box-shadow: 0 8px 16px rgba(255, 75, 43, 0.6);
+        }
+        .big-button:active {
+            transform: scale(0.95);
+        }
+        .sfx-button {
+            background: #333;
+            color: white;
+            border-radius: 5px;
+            padding: 8px;
+            cursor: pointer;
+            border: none;
+            transition: background 0.3s ease;
+        }
+        .sfx-button:hover {
+            background: #444;
+        }
+
+        .audio-player {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+
+        .timestamp {
+            font-size: 1em;
+            color: #fff;
+        }
+
+        .cue-markers {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .cue-marker {
+            position: absolute;
+            width: 5px;
+            height: 15px;
+            background-color: red;
+            top: -5px;
+            cursor: pointer;
+        }
+
+        /* Settings dropdown */
+        .settings-dropdown {
+            display: none;
+            position: absolute;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 5px;
+            top: 40px;
+            right: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            width: 300px;
+        }
+        .settings-dropdown.open {
+            display: block;
+        }
+        .settings-dropdown label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .settings-dropdown input[type="file"] {
+            margin-top: 5px;
+        }
+
+        /* Settings 2 dropdown */
+        .settings-dropdown-2 {
+            display: none;
+            position: absolute;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 5px;
+            top: 40px;
+            right: 150px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            width: 300px;
+        }
+        .settings-dropdown-2.open {
+            display: block;
+        }
+        .settings-dropdown-2 label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .settings-dropdown-2 select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #777;
+            background-color: #555;
+            color: #eee;
+            font-size: 1em;
+        }
+        .settings-dropdown-2 select option {
+            background-color: #444;
+            color: #eee;
+        }
+        .tab-button-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .tab-button {
+            width: 100px;
+            height: 40px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button:hover {
+            background-color: #666;
+        }
+
+        .tab-button.active {
+            background-color: #007bff;
+        }
+
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .tab-button:hover::after,
+        .tab-button.active::after {
+            opacity: 1;
+        }
+        #current-time{
+            color:white;
+            margin-left: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="topBar">
+        <div class="title">Rehearsal Soundpad</div>
+        <div id="current-time">Current Time: 00:00</div>
+        <div class="settings">
+            <button class="big-button" style="width: 40px; height: 40px;" onclick="toggleSettings()">⚙</button>
+            <button class="big-button" style="width: 40px; height: 40px; background-color: blue;" onclick="toggleSettings2()">⚙</button>
+            <button onclick="openGame()" style="background-color: #ff9900; color: #fff; border: 1; border-color: #ff9900; vertical-align: center; font-size: 26px; width:100%; cursor: pointer; border-radius: 10px;"> Fullscreen </button>
+        </div>
+    </div>
+    <div class="tab-button-container">
+        <button class="tab-button active" data-tab="cues" onclick="showTab('cues')">Cues</button>
+        <button class="tab-button" data-tab="audio" onclick="showTab('audio')">Audio</button>
+        <button class="tab-button" data-tab="sfx" onclick="showTab('sfx')">SFX</button>
+    </div>
+    <div class="container">
+        <div id="cueListContainer"  data-tab-content="cues">
+            <h3>Marked Cues</h3>
+            <div id="cueList"></div>
+            <input type="text" id="customCueInput" placeholder="Enter custom cue">
+            <div class="button-container">
+                <button class="big-button scene-change" onclick="addCue('Scene Change', 'scene-change')">Scene Change</button>
+                <button class="big-button blackout" onclick="addCue('Blackout', 'blackout')">Blackout</button>
+                <button class="big-button custom-cue" onclick="addCustomCue()">Add Custom Cue</button>
+                <button class="big-button" onclick="saveCues()">Save Cues</button>
+                <button class="big-button" onclick="loadCues()">Load Cues</button>
+            </div>
+        </div>
+        <div class="audio-controls" data-tab-content="audio" style="display: none;">
+            <h3>Main Track</h3>
+            <div class="audio-player">
+                <audio id="mainAudio" controls controlsList="nodownload nofullscreen noremoteplayback">
+                    <source src="track1.mp3" type="audio/mp3">
+                    Your browser does not support the audio element.
+                </audio>
+                <div class="controls">
+                    <button id="play-btn" class="btn">▶</button>
+                    <input id="progress-bar" class="progress-bar" type="range" value="0" min="0" max="100">
+                    <div id="timestamp" class="timestamp">00:00</div>
+                </div>
+                <div class="cue-markers" id="cue-markers"></div>
+            </div>
+        </div>
+        <div class="sfx-container" data-tab-content="sfx" style="display: none;">
+            <h3>Sound Effects</h3>
+            <div class="button-container" id="sfxButtonContainer">
+                </div>
+            <audio id="sfxAudioPlayer" controls></audio>
+        </div>
+    </div>
+
+    <div class="settings-dropdown" id="settingsDropdown">
+        <h3>Audio Assign Settings</h3>
+        <div id="sfxSettingsContainer"></div>
+        <button class="btn" onclick="closeSettings()">Close Settings</button>
+    </div>
+
+    <div class="settings-dropdown-2" id="settingsDropdown2">
+        <h3>Secondary Audio Settings</h3>
+        <label for="audioSourceSelect">Select Audio:</label>
+        <select id="audioSourceSelect">
+            <option value="track1.mp3">Track 1</option>
+            <option value="track2.mp3">Track 2</option>
+            <option value="track3.mp3">Track 3</option>
+        </select>
+        <button class="btn" onclick="linkToMainAudio()">Link to Main Track</button>
+        <button class="btn" onclick="closeSettings2()">Close</button>
+    </div>
+    <script>
+        function openGame() {
+            var win = window.open();
+            var url = "URL BRUH"; //  Replace with your game URL
+            var iframe = win.document.createElement('iframe');
+            iframe.style.width = "100%";
+            iframe.style.height = "100%";
+            iframe.style.border = "none";
+            iframe.src = url;
+            win.document.body.appendChild(iframe);
+        }
+
+        const sfxButtons = ['SFX 1', 'SFX 2', 'SFX 3', 'SFX 4', 'SFX 5', 'SFX 6', 'SFX 7', 'SFX 8', 'SFX 9', 'SFX 10', 'SFX 11', 'SFX 12', 'SFX 13', 'SFX 14', 'SFX 15'];
+        const sfxButtonContainer = document.getElementById('sfxButtonContainer');
+        const sfxSettingsContainer = document.getElementById('sfxSettingsContainer');
+        const audioSourceSelect = document.getElementById('audioSourceSelect');
+        const mainAudioPlayer = document.getElementById('mainAudio');
+        const playBtn = document.getElementById('play-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const timestampDisplay = document.getElementById('timestamp');
+        const cueMarkersContainer = document.getElementById('cue-markers');
+        let isPlaying = false;
+        let animationFrameId;
+        let cues = [];
+        const currentTimeDisplay = document.getElementById('current-time');
+
+
+        function updateCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const formattedHours = hours % 12 || 12;
+            const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+            const formattedSeconds = seconds < 10 ? '0' + seconds : seconds;
+            const timeString = `${formattedHours}:${formattedMinutes}:${formattedSeconds} ${ampm}`;
+            currentTimeDisplay.textContent = `Current Time: ${timeString}`;
+        }
+
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+
+
+        sfxButtons.forEach((label, index) => {
+            const button = document.createElement('button');
+            button.className = 'sfx-button';
+            button.textContent = label;
+            button.onclick = function () {
+                playSfx(`sfx${index + 1}.mp3`);
+            };
+            const savedColor = localStorage.getItem(`sfxColor${index}`);
+            if (savedColor) {
+                button.style.backgroundColor = savedColor;
+            }
+            sfxButtonContainer.appendChild(button);
+            const settingDiv = document.createElement('div');
+            settingDiv.className = 'sfx-setting';
+            settingDiv.innerHTML = `
+                <label>${label}</label>
+                <input type="file" id="audioFile${index}" accept="audio/*" onchange="updateSfxAudio(${index})">
+                <input type="color" id="colorPicker${index}" value="${savedColor || '#ff416c'}" onchange="updateSfxButtonColor(${index})">
+            `;
+            sfxSettingsContainer.appendChild(settingDiv);
+            const savedAudio = localStorage.getItem(`sfxAudio${index}`);
+            if (savedAudio) {
+                document.getElementById(`audioFile${index}`).setAttribute('data-file', savedAudio);
+            }
+        });
+
+        function playSfx(sfxFile) {
+            const audioPlayer = document.getElementById('sfxAudioPlayer');
+            audioPlayer.src = sfxFile;
+            audioPlayer.play();
+        }
+
+        function updateSfxAudio(index) {
+            const fileInput = document.getElementById(`audioFile${index}`);
+            const file = fileInput.files[0];
+            if (file) {
+                const audioPlayer = document.getElementById('sfxAudioPlayer');
+                audioPlayer.src = URL.createObjectURL(file);
+                localStorage.setItem(`sfxAudio${index}`, file.name);
+            }
+        }
+
+        function updateSfxButtonColor(index) {
+            const colorPicker = document.getElementById(`colorPicker${index}`);
+            const button = sfxButtonContainer.children[index];
+            button.style.backgroundColor = colorPicker.value;
+            localStorage.setItem(`sfxColor${index}`, colorPicker.value);
+        }
+
+        function toggleSettings() {
+            const settingsDropdown = document.getElementById('settingsDropdown');
+            settingsDropdown.classList.toggle('open');
+        }
+
+        function closeSettings() {
+            const settingsDropdown = document.getElementById('settingsDropdown');
+            settingsDropdown.classList.remove('open');
+        }
+
+        function toggleSettings2() {
+            const settingsDropdown2 = document.getElementById('settingsDropdown2');
+            settingsDropdown2.classList.toggle('open');
+        }
+
+        function closeSettings2() {
+            const settingsDropdown2 = document.getElementById('settingsDropdown2');
+            settingsDropdown2.classList.remove('open');
+        }
+
+        function linkToMainAudio() {
+            const selectedAudio = audioSourceSelect.value;
+            mainAudioPlayer.src = selectedAudio;
+            playBtn.textContent = '▶';
+            isPlaying = false;
+            cancelAnimationFrame(animationFrameId);
+        }
+
+        function togglePlay() {
+            if (mainAudioPlayer.paused) {
+                mainAudioPlayer.play();
+                playBtn.textContent = '⏸';
+                isPlaying = true;
+                updateProgressBar();
+            } else {
+                mainAudioPlayer.pause();
+                playBtn.textContent = '▶';
+                isPlaying = false;
+                cancelAnimationFrame(animationFrameId);
+            }
+        }
+
+        function updateProgressBar() {
+            if (isPlaying) {
+                const duration = mainAudioPlayer.duration;
+                const currentTime = mainAudioPlayer.currentTime;
+                const progress = (currentTime / duration) * 100;
+                progressBar.value = progress;
+                timestampDisplay.textContent = formatTime(currentTime) + ' / ' + formatTime(duration);
+                animationFrameId = requestAnimationFrame(updateProgressBar);
+            }
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            const formattedSeconds = remainingSeconds < 10 ? '0' + remainingSeconds : remainingSeconds;
+            return minutes + ':' + formattedSeconds;
+        }
+
+        function seekTo(event) {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (event.clientX - rect.left) / rect.width;
+            const seekTime = pos * mainAudioPlayer.duration;
+            mainAudioPlayer.currentTime = seekTime;
+            updateProgressBar();
+        }
+
+        mainAudioPlayer.addEventListener('loadedmetadata', () => {
+            progressBar.max = 100;
+            timestampDisplay.textContent = '00:00 / ' + formatTime(mainAudioPlayer.duration);
+        });
+
+        mainAudioPlayer.addEventListener('ended', () => {
+            playBtn.textContent = '▶';
+            isPlaying = false;
+            cancelAnimationFrame(animationFrameId);
+            progressBar.value = 0;
+            timestampDisplay.textContent = '00:00 / ' + formatTime(mainAudioPlayer.duration);
+        });
+
+        playBtn.addEventListener('click', togglePlay);
+        progressBar.addEventListener('click', seekTo);
+
+        function addCue(label, className) {
+            const cue = document.createElement('div');
+            cue.className = `cue ${className}`;
+            const cueLabel = document.createElement('span');
+            cueLabel.className = 'cue-label';
+            cueLabel.textContent = label;
+            const cueTime = document.createElement('span');
+            cueTime.className = 'cue-time';
+            cueTime.textContent = formatTime(mainAudioPlayer.currentTime);
+            cue.appendChild(cueLabel);
+            cue.appendChild(cueTime);
+            document.getElementById('cueList').appendChild(cue);
+            const cueMarker = document.createElement('div');
+            cueMarker.className = 'cue-marker';
+            cueMarker.style.left = `${(mainAudioPlayer.currentTime / mainAudioPlayer.duration) * 100}%`;
+            cueMarker.title = label;
+            cueMarkersContainer.appendChild(cueMarker);
+            cues.push({
+                time: mainAudioPlayer.currentTime,
+                label: label,
+                className: className,
+            });
+            cues.sort((a, b) => a.time - b.time);
+        }
+
+        function addCustomCue() {
+            const input = document.getElementById('customCueInput');
+            if (input.value.trim() !== "") {
+                addCue(input.value, 'custom-cue');
+                input.value = "";
+            }
+        }
+
+        function saveCues() {
+            localStorage.setItem('rehearsalCues', JSON.stringify(cues));
+            console.log('Cues saved:', cues);
+            alert('Cues saved to localStorage!');
+        }
+
+        function loadCues() {
+            const savedCues = localStorage.getItem('rehearsalCues');
+            if (savedCues) {
+                cues = JSON.parse(savedCues);
+                console.log('Cues loaded:', cues);
+                cueList.innerHTML = '';
+                cueMarkersContainer.innerHTML = '';
+                cues.forEach(cue => {
+                    const cueDiv = document.createElement('div');
+                    cueDiv.className = `cue ${cue.className}`;
+                    const cueLabel = document.createElement('span');
+                    cueLabel.className = 'cue-label';
+                    cueLabel.textContent = cue.label;
+                    const cueTime = document.createElement('span');
+                    cueTime.className = 'cue-time';
+                    cueTime.textContent = formatTime(cue.time);
+                    cueDiv.appendChild(cueLabel);
+                    cueDiv.appendChild(cueTime);
+                    cueList.appendChild(cueDiv);
+                    const cueMarker = document.createElement('div');
+                    cueMarker.className = 'cue-marker';
+                    cueMarker.style.left = `${(cue.time / mainAudioPlayer.duration) * 100}%`;
+                    cueMarker.title = cue.label;
+                    cueMarkersContainer.appendChild(cueMarker);
+                });
+                alert('Cues loaded from localStorage!');
+            } else {
+                alert('No cues found in localStorage.');
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+
+        function showTab(tabName) {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('[data-tab-content]');
+
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            tabContents.forEach(content => {
+                content.style.display = 'none';
+            });
+
+            const selectedButton = document.querySelector(`[data-tab="${tabName}"]`);
+            const selectedContent = document.querySelector(`[data-tab-content="${tabName}"]`);
+
+            if (selectedButton) {
+                selectedButton.classList.add('active');
+            }
+            if (selectedContent) {
+                selectedContent.style.display = 'block';
+            }
+        }
+        showTab('cues');
+    </script>
+</body>
+</html>
